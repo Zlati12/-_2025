@@ -1,0 +1,17 @@
+set policy-options prefix-list {{ prefix_name }}
+{% for network in subnets %}
+set policy-options prefix-list {{ prefix_name }} {{ network }}
+{% endfor %}
+set firewall filter egress-FBF term {{ prefix_name }} from source-prefix-list {{ prefix_name }}
+set firewall filter egress-FBF term {{ prefix_name }} then routing-instance {{ prefix_name }}
+set firewall filter ingress-FBF term {{ prefix_name }} from destination-prefix-list {{ prefix_name }}
+set firewall filter ingress-FBF term {{ prefix_name }} then routing-instance {{ prefix_name }}
+
+set routing-instances {{ prefix_name }} instance-type forwarding
+set routing-instances {{ prefix_name }} routing-options static route 0.0.0.0/0 next-hop {{ ip_address }}
+set routing-instances {{ prefix_name }} routing-options static route 10.250.0.0/24 next-hop {{ ip_internal }}
+set routing-instances {{ prefix_name }} routing-options static route 10.255.0.0/24 next-hop {{ ip_internal }}
+set routing-instances {{ prefix_name }} routing-options static route 10.254.0.0/24 next-hop {{ ip_internal }}
+set routing-options rib-groups all import-rib {{ prefix_name }}.inet.0
+insert firewall filter egress-FBF term {{ prefix_name }} before term last
+insert firewall filter ingress-FBF term {{ prefix_name }} before term last
